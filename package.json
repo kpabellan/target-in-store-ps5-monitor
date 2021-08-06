@@ -1,0 +1,20 @@
+{
+  "name": "target-in-store-ps5-monitor",
+  "version": "1.0.0",
+  "description": "A Target in-store stock monitor for both digital and disc PS5 consoles that sends in stock alerts to SMS using Twilio.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "kpabellan",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "request": "^2.88.2",
+    "twilio": "^3.66.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kpabellan/target-in-store-ps5-monitor"
+  }
+}
