@@ -58,7 +58,7 @@ function monitorDigi() {
       let storeQty = storeJSON.location_available_to_promise_quantity;
       let timeMS = getTimeMS();
 
-      if ((pickupStat == 'IN_STOCK' || storeQty > 0) && digiTime + 60000 < timeMS) {
+      if ((pickupStat == 'IN_STOCK' || storeQty > 0) && digiTime + 600000 < timeMS) {
         phoneNum.forEach(async number => {
           client.messages.create({
             body: 'DIGITAL PS5 INSTOCK AT LOCAL TARGET https://www.target.com/p/-/A-' + digiSKU,
@@ -92,7 +92,7 @@ function monitorDisc() {
       let storeQty = storeJSON.location_available_to_promise_quantity;
       let timeMS = getTimeMS();
 
-      if ((pickupStat == 'IN_STOCK' || storeQty > 0) && discTime + 60000 < timeMS) {
+      if ((pickupStat == 'IN_STOCK' || storeQty > 0) && discTime + 600000 < timeMS) {
         phoneNum.forEach(async number => {
           client.messages.create({
             body: 'DISC PS5 INSTOCK AT LOCAL TARGET https://www.target.com/p/-/A-' + discSKU,
