@@ -154,7 +154,7 @@ async function monitorDigi() {
             digiStore.splice(index, 1);
           }
 
-          await delay(60000);
+          await delay(180000);
           digiStore.push(storeID);
         }
       }
@@ -200,7 +200,7 @@ async function monitorDisc() {
             discStore.splice(index, 1);
           }
 
-          await delay(60000);
+          await delay(180000);
           discStore.push(storeID);
         }
       }
@@ -246,7 +246,7 @@ async function monitorDigiBundle() {
             digiBundleStore.splice(index, 1);
           }
 
-          await delay(60000);
+          await delay(180000);
           digiBundleStore.push(storeID);
         }
       }
@@ -292,7 +292,7 @@ async function monitorDiscBundle() {
             discBundleStore.splice(index, 1);
           }
 
-          await delay(60000);
+          await delay(180000);
           discBundleStore.push(storeID);
         }
       }
