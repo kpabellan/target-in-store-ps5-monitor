@@ -32,6 +32,8 @@ const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let digiStore = storeIDs;
 let discStore = storeIDs;
+let digiStoreNew = storeIDs;
+let discStoreNew = storeIDs;
 let digiBundleStore = storeIDs;
 let discBundleStore = storeIDs;
 
@@ -42,9 +44,9 @@ function randInt(min, max) {
 function getConsoleType(productSKU) {
   let consoleType = '';
 
-  if (productSKU == 81114596) {
+  if (productSKU == 81114596 || productSKU == 87716465) {
     consoleType = 'PlayStation 5 Digital Edition Console';
-  } else if (productSKU == 81114595) {
+  } else if (productSKU == 81114595 || productSKU == 87716467) {
     consoleType = 'PlayStation 5 Console';
   } else if (productSKU == 86660923) {
     consoleType = 'PlayStation 5 Digital Console Horizon Forbidden West Bundle';
@@ -210,6 +212,98 @@ async function monitorDisc() {
   }
 }
 
+async function monitorDigiNew() {
+  const digiSKU = 87716465;
+
+  for (const store in digiStoreNew) {
+    let storeID = digiStoreNew[store];
+    const config = {
+      method: 'get',
+      url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + digiSKU,
+      httpsAgent: new HttpsProxyAgent(formatProxy(proxies[randInt(0, proxies.length - 1)]))
+    };
+    axios(config).then(async function (response) {
+      let responseCode = response.status;
+      let body = JSON.stringify(response.data);
+      let fetchSuccess = body.search('location_available_to_promise_quantity') !== -1;
+
+      if (responseCode == 200 && fetchSuccess == true) {
+        let quantity = JSON.parse(body).data.product.fulfillment.store_options[0].location_available_to_promise_quantity;
+        let productPrice = JSON.parse(body).data.product.price.formatted_current_price;
+        let storeLocation = JSON.parse(body).data.product.fulfillment.store_options[0].location_name;
+        let productImage = JSON.parse(body).data.product.item.enrichment.images.primary_image_url;
+
+        if (quantity > 0) {
+          if (twilioAlerts) {
+            sendSMS(digiSKU, storeLocation);
+          }
+
+          if (discordWebhookAlerts) {
+            sendWebhook(digiSKU, storeID, quantity, productPrice, storeLocation, productImage);
+          }
+
+          const index = digiStoreNew.indexOf(storeID);
+
+          if (index > -1) {
+            digiStoreNew.splice(index, 1);
+          }
+
+          await delay(180000);
+          digiStoreNew.push(storeID);
+        }
+      }
+    }).catch(function (error) {
+      console.log('Error: ' + error.code);
+    });
+  }
+}
+
+async function monitorDiscNew() {
+  const discSKU = 87716467;
+
+  for (const store in discStoreNew) {
+    let storeID = discStoreNew[store];
+    const config = {
+      method: 'get',
+      url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + discSKU,
+      httpsAgent: new HttpsProxyAgent(formatProxy(proxies[randInt(0, proxies.length - 1)]))
+    };
+    axios(config).then(async function (response) {
+      let responseCode = response.status;
+      let body = JSON.stringify(response.data);
+      let fetchSuccess = body.search('location_available_to_promise_quantity') !== -1;
+
+      if (responseCode == 200 && fetchSuccess == true) {
+        let quantity = JSON.parse(body).data.product.fulfillment.store_options[0].location_available_to_promise_quantity;
+        let productPrice = JSON.parse(body).data.product.price.formatted_current_price;
+        let storeLocation = JSON.parse(body).data.product.fulfillment.store_options[0].location_name;
+        let productImage = JSON.parse(body).data.product.item.enrichment.images.primary_image_url;
+
+        if (quantity > 0) {
+          if (twilioAlerts) {
+            sendSMS(discSKU, storeLocation);
+          }
+
+          if (discordWebhookAlerts) {
+            sendWebhook(discSKU, storeID, quantity, productPrice, storeLocation, productImage);
+          }
+
+          const index = discStoreNew.indexOf(storeID);
+
+          if (index > -1) {
+            discStoreNew.splice(index, 1);
+          }
+
+          await delay(180000);
+          discStoreNew.push(storeID);
+        }
+      }
+    }).catch(function (error) {
+      console.log('Error: ' + error.code);
+    });
+  }
+}
+
 async function monitorDigiBundle() {
   const digiBundleSKU = 86660923;
 
@@ -309,6 +403,8 @@ function start() {
     setInterval(function () {
       monitorDigi();
       monitorDisc();
+      monitorDigiNew();
+      monitorDiscNew();
       monitorDigiBundle();
       monitorDiscBundle();
     }, randInt(3000, 7000));
