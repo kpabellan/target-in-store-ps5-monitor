@@ -34,8 +34,10 @@ let digiStore = storeIDs;
 let discStore = storeIDs;
 let digiStoreNew = storeIDs;
 let discStoreNew = storeIDs;
-let digiBundleStore = storeIDs;
-let discBundleStore = storeIDs;
+let digiHFWBundleStore = storeIDs;
+let discHFWBundleStore = storeIDs;
+let digiGOWBundleStore = storeIDs;
+let discGOWBundleStore = storeIDs;
 
 function randInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -52,6 +54,10 @@ function getConsoleType(productSKU) {
     consoleType = 'PlayStation 5 Digital Console Horizon Forbidden West Bundle';
   } else if (productSKU == 86660922) {
     consoleType = 'PlayStation 5 Console Horizon Forbidden West Bundle';
+  } else if (productSKU == 87800910) {
+    consoleType = 'PlayStation 5 Digital God of War Ragnarok Bundle';
+  } else if (productSKU == 87800909) {
+    consoleType = 'PlayStation 5 Console God of War Ragnarok Bundle';
   }
 
   return consoleType;
@@ -304,11 +310,11 @@ async function monitorDiscNew() {
   }
 }
 
-async function monitorDigiBundle() {
+async function monitorHFWDigiBundle() {
   const digiBundleSKU = 86660923;
 
-  for (const store in digiBundleStore) {
-    let storeID = digiBundleStore[store];
+  for (const store in digiHFWBundleStore) {
+    let storeID = digiHFWBundleStore[store];
     const config = {
       method: 'get',
       url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + digiBundleSKU,
@@ -334,14 +340,14 @@ async function monitorDigiBundle() {
             sendWebhook(digiBundleSKU, storeID, quantity, productPrice, storeLocation, productImage);
           }
 
-          const index = digiBundleStore.indexOf(storeID);
+          const index = digiHFWBundleStore.indexOf(storeID);
 
           if (index > -1) {
-            digiBundleStore.splice(index, 1);
+            digiHFWBundleStore.splice(index, 1);
           }
 
           await delay(180000);
-          digiBundleStore.push(storeID);
+          digiHFWBundleStore.push(storeID);
         }
       }
     }).catch(function (error) {
@@ -350,11 +356,11 @@ async function monitorDigiBundle() {
   }
 }
 
-async function monitorDiscBundle() {
+async function monitorHFWDiscBundle() {
   const discBundleSKU = 86660922;
 
-  for (const store in discBundleStore) {
-    let storeID = discBundleStore[store];
+  for (const store in discHFWBundleStore) {
+    let storeID = discHFWBundleStore[store];
     const config = {
       method: 'get',
       url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + discBundleSKU,
@@ -380,14 +386,106 @@ async function monitorDiscBundle() {
             sendWebhook(discBundleSKU, storeID, quantity, productPrice, storeLocation, productImage);
           }
 
-          const index = discBundleStore.indexOf(storeID);
+          const index = discHFWBundleStore.indexOf(storeID);
 
           if (index > -1) {
-            discBundleStore.splice(index, 1);
+            discHFWBundleStore.splice(index, 1);
           }
 
           await delay(180000);
-          discBundleStore.push(storeID);
+          discHFWBundleStore.push(storeID);
+        }
+      }
+    }).catch(function (error) {
+      console.log('Error: ' + error.code);
+    });
+  }
+}
+
+async function monitorGOWDigiBundle() {
+  const digiBundleSKU = 87800910;
+
+  for (const store in digiGOWBundleStore) {
+    let storeID = digiGOWBundleStore[store];
+    const config = {
+      method: 'get',
+      url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + digiBundleSKU,
+      httpsAgent: new HttpsProxyAgent(formatProxy(proxies[randInt(0, proxies.length - 1)]))
+    };
+    axios(config).then(async function (response) {
+      let responseCode = response.status;
+      let body = JSON.stringify(response.data);
+      let fetchSuccess = body.search('location_available_to_promise_quantity') !== -1;
+
+      if (responseCode == 200 && fetchSuccess == true) {
+        let quantity = JSON.parse(body).data.product.fulfillment.store_options[0].location_available_to_promise_quantity;
+        let productPrice = JSON.parse(body).data.product.price.formatted_current_price;
+        let storeLocation = JSON.parse(body).data.product.fulfillment.store_options[0].location_name;
+        let productImage = JSON.parse(body).data.product.item.enrichment.images.primary_image_url;
+
+        if (quantity > 0) {
+          if (twilioAlerts) {
+            sendSMS(digiBundleSKU, storeLocation);
+          }
+
+          if (discordWebhookAlerts) {
+            sendWebhook(digiBundleSKU, storeID, quantity, productPrice, storeLocation, productImage);
+          }
+
+          const index = digiGOWBundleStore.indexOf(storeID);
+
+          if (index > -1) {
+            digiGOWBundleStore.splice(index, 1);
+          }
+
+          await delay(180000);
+          digiGOWBundleStore.push(storeID);
+        }
+      }
+    }).catch(function (error) {
+      console.log('Error: ' + error.code);
+    });
+  }
+}
+
+async function monitorGOWDiscBundle() {
+  const discBundleSKU = 87800909;
+
+  for (const store in discGOWBundleStore) {
+    let storeID = discGOWBundleStore[store];
+    const config = {
+      method: 'get',
+      url: 'https://redsky.target.com/redsky_aggregations/v1/apps/pdp_v2?device_type=iphone&key=3f015bca9bce7dbb2b377638fa5de0f229713c78&pricing_store_id=' + storeID + '&scheduled_delivery_store_id=' + storeID + '&store_id=' + storeID + '&tcin=' + discBundleSKU,
+      httpsAgent: new HttpsProxyAgent(formatProxy(proxies[randInt(0, proxies.length - 1)]))
+    };
+    axios(config).then(async function (response) {
+      let responseCode = response.status;
+      let body = JSON.stringify(response.data);
+      let fetchSuccess = body.search('location_available_to_promise_quantity') !== -1;
+
+      if (responseCode == 200 && fetchSuccess == true) {
+        let quantity = JSON.parse(body).data.product.fulfillment.store_options[0].location_available_to_promise_quantity;
+        let productPrice = JSON.parse(body).data.product.price.formatted_current_price;
+        let storeLocation = JSON.parse(body).data.product.fulfillment.store_options[0].location_name;
+        let productImage = JSON.parse(body).data.product.item.enrichment.images.primary_image_url;
+
+        if (quantity > 0) {
+          if (twilioAlerts) {
+            sendSMS(discBundleSKU, storeLocation);
+          }
+
+          if (discordWebhookAlerts) {
+            sendWebhook(discBundleSKU, storeID, quantity, productPrice, storeLocation, productImage);
+          }
+
+          const index = discGOWBundleStore.indexOf(storeID);
+
+          if (index > -1) {
+            discGOWBundleStore.splice(index, 1);
+          }
+
+          await delay(180000);
+          discGOWBundleStore.push(storeID);
         }
       }
     }).catch(function (error) {
@@ -405,8 +503,10 @@ function start() {
       monitorDisc();
       monitorDigiNew();
       monitorDiscNew();
-      monitorDigiBundle();
-      monitorDiscBundle();
+      monitorHFWDigiBundle();
+      monitorHFWDiscBundle();
+      monitorGOWDigiBundle();
+      monitorGOWDiscBundle();
     }, randInt(3000, 7000));
   }
 }
